@@ -5,4 +5,5 @@ pyproj
 fiona
 folium
 pytest
-streamlit
+streamlit==1.32.2
+altair==5.2.0
