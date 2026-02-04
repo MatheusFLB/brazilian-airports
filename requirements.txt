@@ -1,0 +1,8 @@
+﻿pandas
+geopandas
+shapely
+pyproj
+fiona
+folium
+pytest
+streamlit
