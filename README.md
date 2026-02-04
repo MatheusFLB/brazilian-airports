@@ -1,5 +1,8 @@
 ﻿# ✈️ Aeroportos Geo
 
+## 🌐 Aplicação publicada
+- https://brazilaero.streamlit.app
+
 Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo
 completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
 
