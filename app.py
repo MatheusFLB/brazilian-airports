@@ -267,6 +267,7 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
 
     st.subheader("Mapa")
     st.info("Para visualizar os aeroportos, marque as camadas na legenda do mapa.")
+    st.caption(f"Tamanho do HTML do mapa: {len(st.session_state.map_html) / 1024:.1f} KB")
     try:
         st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
     except TypeError:
