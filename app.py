@@ -102,8 +102,15 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
     return map_path
 
 
+def _init_state() -> None:
+    st.session_state.setdefault("results", None)
+    st.session_state.setdefault("map_html", None)
+    st.session_state.setdefault("outputs_zip", None)
+
+
 def main() -> None:
     st.set_page_config(page_title="Brazilian Airports", page_icon=":flag-br:", layout="wide")
+    _init_state()
     st.markdown(
         """
 <style>
@@ -190,7 +197,7 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
     )
 
     st.markdown("### Entrada de dados")
-    if st.session_state.map_html is None:
+    if st.session_state.get("map_html") is None:
         st.info("Configure a entrada e clique em Processar.")
     source = st.radio(
         "Fonte",
@@ -206,13 +213,6 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
             key="uploads",
         )
     run = st.button("Processar")
-
-    if "results" not in st.session_state:
-        st.session_state.results = None
-    if "map_html" not in st.session_state:
-        st.session_state.map_html = None
-    if "outputs_zip" not in st.session_state:
-        st.session_state.outputs_zip = None
 
     if run:
         with st.spinner("Processando..."):
@@ -244,7 +244,7 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
                 st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
                 st.session_state.outputs_zip = None
 
-    if st.session_state.map_html is None:
+    if st.session_state.get("map_html") is None:
         return
 
     st.subheader("Mapa")
