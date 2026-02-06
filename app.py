@@ -127,7 +127,11 @@ def _init_state() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Brazilian Airports", page_icon=":flag-br:", layout="wide")
+    st.set_page_config(
+        page_title="Brazilian Airports",
+        page_icon=str(BASE_DIR / "assets" / "flag-br.png"),
+        layout="wide",
+    )
     _init_state()
     st.markdown(
         """
@@ -144,7 +148,7 @@ def main() -> None:
   margin-bottom: 6px;
   color: #0f172a;
   line-height: 1.25;
-  padding-top: 10px;
+  padding-top: 18px;
   padding-bottom: 10px;
 }
 .page-subtitle {
@@ -267,7 +271,6 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
 
     st.subheader("Mapa")
     st.info("Para visualizar os aeroportos, marque as camadas na legenda do mapa.")
-    st.caption(f"Tamanho do HTML do mapa: {len(st.session_state.map_html) / 1024:.1f} KB")
     try:
         st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
     except TypeError:
