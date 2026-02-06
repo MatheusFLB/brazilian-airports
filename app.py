@@ -103,7 +103,7 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Aeroportos Geo", page_icon=":flag-br:", layout="wide")
+    st.set_page_config(page_title="Brazilian Airports", page_icon=":flag-br:", layout="wide")
     st.markdown(
         """
 <style>
@@ -117,17 +117,22 @@ def main() -> None:
   font-size: 34px;
   font-weight: 700;
   margin-bottom: 6px;
+  color: #0f172a;
 }
 .page-subtitle {
   text-align: center;
-  color: #2f3640;
+  color: #334155;
   margin-bottom: 18px;
 }
+@media (prefers-color-scheme: dark) {
+  .page-title { color: #f8fafc; }
+  .page-subtitle { color: #cbd5e1; }
+}
 </style>
-<div class="page-title">✈️ Aeroportos Geo</div>
+<div class="page-title">✈️ Brazilian Airports</div>
 <div class="page-subtitle">
-  Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo completo:
-  CSV bruto → limpeza → shapefile → mapa interativo.
+  Projeto de portfólio para analise de dados geoespaciais.<br>
+  Demonstra o fluxo completo: CSV bruto → limpeza → shapefile → mapa interativo.
 </div>
 """,
         unsafe_allow_html=True,
