@@ -39,6 +39,23 @@ PLANE_CSS = """
 </style>
 """
 
+POPUP_CSS = """
+<style>
+.popup-table {
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+.popup-table th {
+  text-align: left;
+  padding-right: 6px;
+  font-weight: 600;
+}
+.popup-table td {
+  white-space: nowrap;
+}
+</style>
+"""
+
 SIDEBAR_CSS = """
 <style>
 #filter-sidebar {
@@ -174,7 +191,7 @@ def _has_token(value: object, token: str) -> bool:
 
 
 def _build_popup(row: pd.Series, fields: List[Tuple[str, str]]) -> str:
-    lines = ["<table style='border-collapse:collapse; white-space:nowrap;'>"]
+    lines = ["<table class='popup-table'>"]
     for label, col in fields:
         val = _fix_text(row.get(col, ""))
         if val.strip() == "":
@@ -185,17 +202,14 @@ def _build_popup(row: pd.Series, fields: List[Tuple[str, str]]) -> str:
             link_text = "Abrir link"
             title = html.escape(val)
             lines.append(
-                f"<tr><th style='text-align:left;padding-right:6px;white-space:nowrap'>"
-                f"{html.escape(display_label)}</th>"
-                f"<td style='white-space:nowrap'>"
-                f"<a href=\"{url}\" target=\"_blank\" rel=\"noopener\" title=\"{title}\">"
+                f"<tr><th>{html.escape(display_label)}</th>"
+                f"<td><a href=\"{url}\" target=\"_blank\" rel=\"noopener\" title=\"{title}\">"
                 f"{link_text}</a></td></tr>"
             )
             continue
         lines.append(
-            f"<tr><th style='text-align:left;padding-right:6px;white-space:nowrap'>"
-            f"{html.escape(display_label)}</th>"
-            f"<td style='white-space:nowrap'>{html.escape(val)}</td></tr>"
+            f"<tr><th>{html.escape(display_label)}</th>"
+            f"<td>{html.escape(val)}</td></tr>"
         )
     lines.append("</table>")
     return "".join(lines)
@@ -242,6 +256,7 @@ def make_combined_map(
     )
     m.get_root().header.add_child(Element(f"<link rel='stylesheet' href='{FA_CSS}'>"))
     m.get_root().header.add_child(Element(PLANE_CSS))
+    m.get_root().header.add_child(Element(POPUP_CSS))
     m.get_root().header.add_child(Element(SIDEBAR_CSS))
 
     bounds: Optional[Tuple[float, float, float, float]] = None
