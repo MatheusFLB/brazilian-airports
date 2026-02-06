@@ -7,9 +7,7 @@ __pycache__/
 venv/
 
 # Streamlit
-.streamlit/*
-!.streamlit/
-!.streamlit/config.toml
+.streamlit/
 
 # OS files
 .DS_Store
@@ -17,5 +15,3 @@ Thumbs.db
 
 # Outputs
 out/
-static/*.html
-!static/mapa.html

@@ -1,11 +1,9 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
-import html as html_lib
 from pathlib import Path
 import io
 import tempfile
-import time
 import zipfile
 from typing import List
 
@@ -19,7 +17,6 @@ from src.make_map import DatasetLayer, make_combined_map
 from src.cli import read_csv_guess
 
 BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
 
 PUBLICOS_URL = (
     "https://sistemas.anac.gov.br/dadosabertos/Aerodromos/"
@@ -105,32 +102,6 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
     return map_path
 
 
-def _publish_map(map_path: Path) -> str:
-    STATIC_DIR.mkdir(parents=True, exist_ok=True)
-    filename = "mapa.html"
-    target = STATIC_DIR / filename
-    target.write_bytes(map_path.read_bytes())
-    if not target.exists() or target.stat().st_size == 0:
-        raise RuntimeError("Falha ao salvar o mapa em static/")
-    version = int(time.time())
-    return f"static/{filename}?v={version}"
-
-
-def _static_serving_enabled() -> bool:
-    try:
-        return bool(st.config.get_option("server.enableStaticServing"))
-    except Exception:
-        return False
-
-
-def _render_static_map(map_url: str, height: int = 800) -> None:
-    safe_url = html_lib.escape(map_url, quote=True)
-    st.markdown(
-        f'<iframe src="{safe_url}" style="width:100%;height:{height}px;border:0;" loading="lazy"></iframe>',
-        unsafe_allow_html=True,
-    )
-
-
 def main() -> None:
     st.set_page_config(page_title="Aeroportos Geo", page_icon=":flag-br:", layout="wide")
     st.title("Aeroportos Geo")
@@ -164,8 +135,6 @@ def main() -> None:
         st.session_state.results = None
     if "map_html" not in st.session_state:
         st.session_state.map_html = None
-    if "map_url" not in st.session_state:
-        st.session_state.map_url = None
     if "outputs_zip" not in st.session_state:
         st.session_state.outputs_zip = None
 
@@ -196,31 +165,19 @@ def main() -> None:
                 map_path = _render_map(results, outdir)
 
                 st.session_state.results = results
-                if _static_serving_enabled():
-                    try:
-                        st.session_state.map_url = _publish_map(map_path)
-                        st.session_state.map_html = None
-                    except Exception:
-                        st.session_state.map_url = None
-                        st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
-                else:
-                    st.session_state.map_url = None
-                    st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
+                st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
                 st.session_state.outputs_zip = None
 
-    if st.session_state.map_html is None and st.session_state.map_url is None:
+    if st.session_state.map_html is None:
         st.info("Configure a entrada e clique em Processar.")
         return
 
     st.subheader("Mapa")
-    if st.session_state.map_url:
-        _render_static_map(st.session_state.map_url, height=800)
-    else:
-        try:
-            st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
-        except TypeError:
-            # Older Streamlit versions don't support the "key" argument here.
-            st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
+    try:
+        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
+    except TypeError:
+        # Older Streamlit versions don't support the "key" argument here.
+        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
 
     st.markdown("### Outputs")
     if st.button("Gerar outputs para download"):
