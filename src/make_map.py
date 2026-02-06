@@ -18,6 +18,16 @@ logger = logging.getLogger(__name__)
 BRAZIL_CENTER = (-14.235, -51.925)
 
 FA_CSS = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+
+CLUSTER_OPTIONS = {
+    "chunkedLoading": True,
+    "chunkInterval": 200,
+    "chunkDelay": 50,
+    "removeOutsideVisibleBounds": True,
+    "disableClusteringAtZoom": 8,
+    "showCoverageOnHover": False,
+    "animate": False,
+}
 PLANE_CSS = """
 <style>
 .plane-icon {
@@ -228,7 +238,13 @@ def make_combined_map(
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    m = folium.Map(location=BRAZIL_CENTER, zoom_start=4, control_scale=True, prefer_canvas=True)
+    m = folium.Map(
+        location=BRAZIL_CENTER,
+        zoom_start=4,
+        control_scale=True,
+        prefer_canvas=True,
+        tiles="CartoDB positron",
+    )
     m.get_root().header.add_child(Element(f"<link rel='stylesheet' href='{FA_CSS}'>"))
     m.get_root().header.add_child(Element(PLANE_CSS))
     m.get_root().header.add_child(Element(SIDEBAR_CSS))
@@ -240,10 +256,10 @@ def make_combined_map(
     publicos_group = folium.FeatureGroup(name="Publicos")
     publicos_ifr_group = folium.FeatureGroup(name="Publicos com IFR")
 
-    privados_cluster = MarkerCluster(name="Privados (cluster)", disableClusteringAtZoom=8)
-    privados_ifr_cluster = MarkerCluster(name="Privados IFR (cluster)", disableClusteringAtZoom=8)
-    publicos_cluster = MarkerCluster(name="Publicos (cluster)", disableClusteringAtZoom=8)
-    publicos_ifr_cluster = MarkerCluster(name="Publicos IFR (cluster)", disableClusteringAtZoom=8)
+    privados_cluster = MarkerCluster(name="Privados (cluster)", options=CLUSTER_OPTIONS)
+    privados_ifr_cluster = MarkerCluster(name="Privados IFR (cluster)", options=CLUSTER_OPTIONS)
+    publicos_cluster = MarkerCluster(name="Publicos (cluster)", options=CLUSTER_OPTIONS)
+    publicos_ifr_cluster = MarkerCluster(name="Publicos IFR (cluster)", options=CLUSTER_OPTIONS)
 
     privados_cluster.add_to(privados_group)
     privados_ifr_cluster.add_to(privados_ifr_group)
@@ -292,7 +308,7 @@ def make_combined_map(
 
             folium.Marker(
                 location=[row[lat_col], row[lon_col]],
-                popup=folium.Popup(popup_html, max_width=350),
+                popup=folium.Popup(popup_html, max_width=350, lazy=True),
                 icon=icon,
             ).add_to(target_layer)
 
