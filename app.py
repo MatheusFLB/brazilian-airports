@@ -276,14 +276,6 @@ Project created by **[Matheus Bissoli](https://www.linkedin.com/in/matheusbissol
     if st.session_state.get("map_html") is None:
         return
 
-    st.subheader("Map")
-    st.info("To view airports, enable layers in the map legend.")
-    try:
-        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
-    except TypeError:
-        # Older Streamlit versions don't support the "key" argument here.
-        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
-
     st.markdown("### Outputs")
     if st.button("Generate outputs for download"):
         if st.session_state.results:
@@ -295,6 +287,13 @@ Project created by **[Matheus Bissoli](https://www.linkedin.com/in/matheusbissol
             file_name="airports_outputs.zip",
             mime="application/zip",
         )
+
+    st.subheader("Map")
+    try:
+        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
+    except TypeError:
+        # Older Streamlit versions don't support the "key" argument here.
+        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
 
 
 if __name__ == "__main__":
