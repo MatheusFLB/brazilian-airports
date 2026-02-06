@@ -116,7 +116,7 @@ def _publish_map(map_path: Path) -> str:
     if not target.exists() or target.stat().st_size == 0:
         raise RuntimeError("Falha ao salvar o mapa em static/")
     version = int(time.time())
-    return f"{filename}?v={version}"
+    return f"static/{filename}?v={version}"
 
 
 def _static_serving_enabled() -> bool:
@@ -128,26 +128,10 @@ def _static_serving_enabled() -> bool:
 
 def _render_static_map(map_url: str, height: int = 800) -> None:
     safe_url = html_lib.escape(map_url, quote=True)
-    iframe_html = f"""
-<div style="width:100%;height:{height}px;">
-  <iframe id="map-frame" style="width:100%;height:100%;border:0;" loading="lazy"></iframe>
-</div>
-<script>
-(function() {{
-  var file = "{safe_url}";
-  var frame = document.getElementById("map-frame");
-  if (!frame) return;
-  var origin = window.parent && window.parent.location ? window.parent.location.origin : window.location.origin;
-  var path = window.parent && window.parent.location ? window.parent.location.pathname : window.location.pathname;
-  var base = "";
-  if (path && path.startsWith("/~")) {{
-    base = "/~";
-  }}
-  frame.src = origin + base + "/static/" + file;
-}})();
-</script>
-"""
-    st.components.v1.html(iframe_html, height=height, scrolling=False)
+    st.markdown(
+        f'<iframe src="{safe_url}" style="width:100%;height:{height}px;border:0;" loading="lazy"></iframe>',
+        unsafe_allow_html=True,
+    )
 
 
 def main() -> None:
