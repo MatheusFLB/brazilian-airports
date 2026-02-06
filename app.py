@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 from dataclasses import dataclass
+import html as html_lib
 from pathlib import Path
 import io
 import secrets
@@ -123,6 +124,33 @@ def _static_serving_enabled() -> bool:
         return False
 
 
+def _render_static_map(map_url: str, height: int = 800) -> None:
+    safe_url = html_lib.escape(map_url, quote=True)
+    iframe_html = f"""
+<div style="width:100%;height:{height}px;">
+  <iframe id="map-frame" style="width:100%;height:100%;border:0;" loading="lazy"></iframe>
+</div>
+<script>
+(function() {{
+  var src = "{safe_url}";
+  var frame = document.getElementById("map-frame");
+  if (!frame) return;
+  if (src.startsWith("/")) {{
+    try {{
+      var origin = (window.parent && window.parent.location) ? window.parent.location.origin : window.location.origin;
+      frame.src = origin + src;
+      return;
+    }} catch (e) {{
+      // Fallback to relative path if parent access fails.
+    }}
+  }}
+  frame.src = src;
+}})();
+</script>
+"""
+    st.components.v1.html(iframe_html, height=height, scrolling=False)
+
+
 def main() -> None:
     st.set_page_config(page_title="Aeroportos Geo", page_icon=":flag-br:", layout="wide")
     st.title("Aeroportos Geo")
@@ -206,7 +234,7 @@ def main() -> None:
 
     st.subheader("Mapa")
     if st.session_state.map_url:
-        st.components.v1.iframe(st.session_state.map_url, height=800, scrolling=True)
+        _render_static_map(st.session_state.map_url, height=800)
     else:
         try:
             st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
