@@ -118,6 +118,9 @@ def main() -> None:
   font-weight: 700;
   margin-bottom: 6px;
   color: #0f172a;
+  line-height: 1.25;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 .page-subtitle {
   text-align: center;
@@ -171,20 +174,20 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
     )
 
     st.markdown("### Entrada de dados")
-    with st.form("input_form"):
-        source = st.radio(
-            "Fonte",
-            ["Usar CSVs do projeto", "Upload de CSVs"],
-            horizontal=True,
+    source = st.radio(
+        "Fonte",
+        ["Usar CSVs do projeto", "Upload de CSVs"],
+        horizontal=True,
+    )
+    uploads = []
+    if source == "Upload de CSVs":
+        uploads = st.file_uploader(
+            "Envie 1 ou 2 CSVs",
+            type=["csv"],
+            accept_multiple_files=True,
+            key="uploads",
         )
-        uploads = []
-        if source == "Upload de CSVs":
-            uploads = st.file_uploader(
-                "Envie 1 ou 2 CSVs",
-                type=["csv"],
-                accept_multiple_files=True,
-            )
-        run = st.form_submit_button("Processar")
+    run = st.button("Processar")
 
     if "results" not in st.session_state:
         st.session_state.results = None
@@ -250,4 +253,3 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
 
 if __name__ == "__main__":
     main()
-
