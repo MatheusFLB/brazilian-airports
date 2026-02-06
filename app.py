@@ -127,6 +127,22 @@ def main() -> None:
   color: #334155;
   margin-bottom: 18px;
 }
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
+.stMarkdownContainer h1, .stMarkdownContainer h2, .stMarkdownContainer h3 {
+  line-height: 1.4;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  overflow: visible;
+}
+.stMarkdown h1 span, .stMarkdown h2 span, .stMarkdown h3 span,
+.stMarkdownContainer h1 span, .stMarkdownContainer h2 span, .stMarkdownContainer h3 span,
+.stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a,
+.stMarkdownContainer h1 a, .stMarkdownContainer h2 a, .stMarkdownContainer h3 a {
+  line-height: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
 @media (prefers-color-scheme: dark) {
   .page-title { color: #f8fafc; }
   .page-subtitle { color: #cbd5e1; }
