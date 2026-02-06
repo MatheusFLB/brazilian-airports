@@ -164,7 +164,7 @@ def main() -> None:
 - ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
 - 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
 
-**O que é VFR e IFR?**
+### **O que é VFR e IFR?**
 VFR (Visual Flight Rules) = operação visual.  
 IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com baixa visibilidade.
 """
