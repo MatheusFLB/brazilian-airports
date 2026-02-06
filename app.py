@@ -190,6 +190,8 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
     )
 
     st.markdown("### Entrada de dados")
+    if st.session_state.map_html is None:
+        st.info("Configure a entrada e clique em Processar.")
     source = st.radio(
         "Fonte",
         ["Usar CSVs do projeto", "Upload de CSVs"],
@@ -243,7 +245,6 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
                 st.session_state.outputs_zip = None
 
     if st.session_state.map_html is None:
-        st.info("Configure a entrada e clique em Processar.")
         return
 
     st.subheader("Mapa")
