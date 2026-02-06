@@ -107,50 +107,27 @@ def main() -> None:
     st.markdown(
         """
 <style>
-.hero-card {
-  background: linear-gradient(120deg, #f7f9fc, #eef3ff);
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
+.main .block-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-top: 2rem;
 }
-.hero-title {
-  font-size: 32px;
+.page-title {
+  text-align: center;
+  font-size: 34px;
   font-weight: 700;
-  margin: 0;
+  margin-bottom: 6px;
 }
-.hero-sub {
-  margin-top: 6px;
-  font-size: 15px;
+.page-subtitle {
+  text-align: center;
   color: #2f3640;
-}
-.badges {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.badge {
-  background: #ffffff;
-  border: 1px solid #d7e0ee;
-  color: #2d3748;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+  margin-bottom: 18px;
 }
 </style>
-<div class="hero-card">
-  <div class="hero-title">✈️ Aeroportos Geo</div>
-  <div class="hero-sub">
-    Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo completo:
-    CSV bruto → limpeza → shapefile → mapa interativo.
-  </div>
-  <div class="badges">
-    <span class="badge">CSV → Shapefile</span>
-    <span class="badge">EPSG:4326</span>
-    <span class="badge">Folium + Streamlit</span>
-    <span class="badge">Filtros e popups</span>
-  </div>
+<div class="page-title">✈️ Aeroportos Geo</div>
+<div class="page-subtitle">
+  Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo completo:
+  CSV bruto → limpeza → shapefile → mapa interativo.
 </div>
 """,
         unsafe_allow_html=True,
@@ -161,10 +138,8 @@ def main() -> None:
         f"[Aerodromos Privados]({PRIVADOS_URL})"
     )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(
-            """
+    st.markdown(
+        """
 ### 🧭 Fluxo da solução
 - 📥 Coleta dados brutos em CSV (ANAC)
 - 🧹 Limpa e valida coordenadas geográficas
@@ -172,26 +147,21 @@ def main() -> None:
 - ✈️ Cria mapa interativo com filtros e popups
 - 🔗 Links de portaria ficam clicáveis
 """
-        )
-    with col2:
-        st.markdown(
-            """
-### 🧠 Regras de qualidade de coordenadas
-- Remove espaços/tabs e aceita vírgula decimal
-- Corrige números sem ponto decimal (ex: -22175 → -22.175)
-- Tenta inverter LAT/LON quando fora das faixas do Brasil
-- Faixas Brasil: Latitude [-35, 6]
-- Faixas Brasil: Longitude [-75, -30]
-"""
-        )
+    )
 
     st.markdown(
         """
 ### 🗺️ Mapa interativo e filtros
-- 🟫 Privados (terracota) e 🟦 ciano quando "Operação Noturna" contém "VFR / IFR"
-- 🟨 Públicos (amarelo) e 🟪 violeta quando "Operação Noturna" contém "VFR / IFR"
+- 🟫 Privados (terracota) = operação visual (VFR)
+- 🟦 Privados com IFR = habilitado para operação por instrumentos
+- 🟨 Públicos (amarelo) = operação visual (VFR)
+- 🟪 Públicos com IFR = habilitado para operação por instrumentos
 - ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
 - 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
+
+**O que é VFR e IFR?**
+VFR (Visual Flight Rules) = operação visual.  
+IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com baixa visibilidade.
 """
     )
 

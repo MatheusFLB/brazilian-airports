@@ -21,10 +21,16 @@ completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
 - Faixas Brasil: Longitude [-75, -30]
 
 ## 🗺️ Mapa interativo e filtros
-- 🟫 Privados (terracota) e 🟦 ciano quando "Operação Noturna" contém "VFR / IFR"
-- 🟨 Públicos (amarelo) e 🟪 violeta quando "Operação Noturna" contém "VFR / IFR"
+- 🟫 Privados (terracota) = operação visual (VFR)
+- 🟦 Privados com IFR = habilitado para operação por instrumentos
+- 🟨 Públicos (amarelo) = operação visual (VFR)
+- 🟪 Públicos com IFR = habilitado para operação por instrumentos
 - ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
 - 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
+
+**O que é VFR e IFR?**
+VFR (Visual Flight Rules) = operação visual.  
+IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com baixa visibilidade.
 
 ## 📦 Saídas geradas
 - CSVs limpos

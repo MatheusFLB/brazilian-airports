@@ -307,7 +307,9 @@ def make_combined_map(
     else:
         logger.warning("No valid points to plot. Map will be centered in Brazil without markers.")
 
-    # Start with all layers hidden; user enables via the legend filters.
+    # Add groups to map so they can be toggled by the custom legend.
+    for group in (privados_group, privados_ifr_group, publicos_group, publicos_ifr_group):
+        group.add_to(m)
 
     privados_cfg = next((d.config for d in datasets if d.config.key == "privados"), None)
     publicos_cfg = next((d.config for d in datasets if d.config.key == "publicos"), None)
@@ -363,6 +365,11 @@ def make_combined_map(
       cb.addEventListener('change', sync);
       sync();
     }}
+    // Ensure layers start hidden.
+    map.removeLayer(layers.privados);
+    map.removeLayer(layers.privados_ifr);
+    map.removeLayer(layers.publicos);
+    map.removeLayer(layers.publicos_ifr);
     bind('flt-privados', layers.privados);
     bind('flt-privados-ifr', layers.privados_ifr);
     bind('flt-publicos', layers.publicos);
