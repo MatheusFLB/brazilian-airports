@@ -122,6 +122,12 @@ def main() -> None:
   padding-top: 4px;
   padding-bottom: 4px;
 }
+.main h1, .main h2, .main h3 {
+  line-height: 1.35;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  overflow: visible;
+}
 .page-subtitle {
   text-align: center;
   color: #334155;
