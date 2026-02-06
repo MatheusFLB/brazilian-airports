@@ -3,7 +3,9 @@
 from dataclasses import dataclass
 from pathlib import Path
 import io
+import secrets
 import tempfile
+import time
 import zipfile
 from typing import List
 
@@ -17,6 +19,7 @@ from src.make_map import DatasetLayer, make_combined_map
 from src.cli import read_csv_guess
 
 BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
 
 PUBLICOS_URL = (
     "https://sistemas.anac.gov.br/dadosabertos/Aerodromos/"
@@ -102,6 +105,24 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
     return map_path
 
 
+def _publish_map(map_path: Path) -> str:
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+    if "map_token" not in st.session_state:
+        st.session_state.map_token = secrets.token_hex(4)
+    filename = f"mapa_{st.session_state.map_token}.html"
+    target = STATIC_DIR / filename
+    target.write_bytes(map_path.read_bytes())
+    version = int(time.time())
+    return f"/static/{filename}?v={version}"
+
+
+def _static_serving_enabled() -> bool:
+    try:
+        return bool(st.config.get_option("server.enableStaticServing"))
+    except Exception:
+        return False
+
+
 def main() -> None:
     st.set_page_config(page_title="Aeroportos Geo", page_icon=":flag-br:", layout="wide")
     st.title("Aeroportos Geo")
@@ -115,23 +136,28 @@ def main() -> None:
         f"[Aerodromos Privados]({PRIVADOS_URL})"
     )
 
-    with st.sidebar:
-        st.header("Entrada")
-        use_sample = st.checkbox("Usar CSVs do projeto", value=True)
+    st.markdown("### Entrada de dados")
+    with st.form("input_form"):
+        source = st.radio(
+            "Fonte",
+            ["Usar CSVs do projeto", "Upload de CSVs"],
+            horizontal=True,
+        )
         uploads = []
-        if not use_sample:
+        if source == "Upload de CSVs":
             uploads = st.file_uploader(
-                "Envie os CSVs",
+                "Envie 1 ou 2 CSVs",
                 type=["csv"],
                 accept_multiple_files=True,
             )
-
-        run = st.button("Processar")
+        run = st.form_submit_button("Processar")
 
     if "results" not in st.session_state:
         st.session_state.results = None
     if "map_html" not in st.session_state:
         st.session_state.map_html = None
+    if "map_url" not in st.session_state:
+        st.session_state.map_url = None
     if "outputs_zip" not in st.session_state:
         st.session_state.outputs_zip = None
 
@@ -140,7 +166,7 @@ def main() -> None:
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir_path = Path(tmpdir)
 
-                if use_sample:
+                if source == "Usar CSVs do projeto":
                     csv_dir = BASE_DIR / "csv-base"
                     paths = sorted(csv_dir.glob("*.csv"))
                     if not paths:
@@ -162,19 +188,31 @@ def main() -> None:
                 map_path = _render_map(results, outdir)
 
                 st.session_state.results = results
-                st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
+                if _static_serving_enabled():
+                    try:
+                        st.session_state.map_url = _publish_map(map_path)
+                        st.session_state.map_html = None
+                    except Exception:
+                        st.session_state.map_url = None
+                        st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
+                else:
+                    st.session_state.map_url = None
+                    st.session_state.map_html = map_path.read_text(encoding="utf-8", errors="ignore")
                 st.session_state.outputs_zip = None
 
-    if st.session_state.map_html is None:
+    if st.session_state.map_html is None and st.session_state.map_url is None:
         st.info("Configure a entrada e clique em Processar.")
         return
 
     st.subheader("Mapa")
-    try:
-        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
-    except TypeError:
-        # Older Streamlit versions don't support the "key" argument here.
-        st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
+    if st.session_state.map_url:
+        st.components.v1.iframe(st.session_state.map_url, height=800, scrolling=True)
+    else:
+        try:
+            st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
+        except TypeError:
+            # Older Streamlit versions don't support the "key" argument here.
+            st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
 
     st.markdown("### Outputs")
     if st.button("Gerar outputs para download"):
