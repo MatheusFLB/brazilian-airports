@@ -8,6 +8,7 @@ import logging
 import re
 import pandas as pd
 import folium
+from folium.plugins import MarkerCluster
 from branca.element import Element
 
 from .datasets import DatasetConfig, normalize_name
@@ -227,7 +228,7 @@ def make_combined_map(
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    m = folium.Map(location=BRAZIL_CENTER, zoom_start=4, control_scale=True)
+    m = folium.Map(location=BRAZIL_CENTER, zoom_start=4, control_scale=True, prefer_canvas=True)
     m.get_root().header.add_child(Element(f"<link rel='stylesheet' href='{FA_CSS}'>"))
     m.get_root().header.add_child(Element(PLANE_CSS))
     m.get_root().header.add_child(Element(SIDEBAR_CSS))
@@ -238,6 +239,16 @@ def make_combined_map(
     privados_ifr_group = folium.FeatureGroup(name="Privados com IFR")
     publicos_group = folium.FeatureGroup(name="Publicos")
     publicos_ifr_group = folium.FeatureGroup(name="Publicos com IFR")
+
+    privados_cluster = MarkerCluster(name="Privados (cluster)", disableClusteringAtZoom=8)
+    privados_ifr_cluster = MarkerCluster(name="Privados IFR (cluster)", disableClusteringAtZoom=8)
+    publicos_cluster = MarkerCluster(name="Publicos (cluster)", disableClusteringAtZoom=8)
+    publicos_ifr_cluster = MarkerCluster(name="Publicos IFR (cluster)", disableClusteringAtZoom=8)
+
+    privados_cluster.add_to(privados_group)
+    privados_ifr_cluster.add_to(privados_ifr_group)
+    publicos_cluster.add_to(publicos_group)
+    publicos_ifr_cluster.add_to(publicos_ifr_group)
 
     group_map = {
         "privados": (privados_group, privados_ifr_group),
@@ -270,11 +281,20 @@ def make_combined_map(
                 target_group = ifr_group if is_ifr else base_group
             else:
                 target_group = publicos_group
+            if target_group is privados_group:
+                target_layer = privados_cluster
+            elif target_group is privados_ifr_group:
+                target_layer = privados_ifr_cluster
+            elif target_group is publicos_group:
+                target_layer = publicos_cluster
+            else:
+                target_layer = publicos_ifr_cluster
+
             folium.Marker(
                 location=[row[lat_col], row[lon_col]],
                 popup=folium.Popup(popup_html, max_width=350),
                 icon=icon,
-            ).add_to(target_group)
+            ).add_to(target_layer)
 
             lat = float(row[lat_col])
             lon = float(row[lon_col])

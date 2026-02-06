@@ -170,7 +170,7 @@ def main() -> None:
         return
 
     st.subheader("Mapa")
-    st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
+    st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
 
     st.markdown("### Outputs")
     if st.button("Gerar outputs para download"):
