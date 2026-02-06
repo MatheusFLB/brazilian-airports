@@ -218,6 +218,13 @@ IFR (Instrument Flight Rules) = instrument operations, allows low-visibility fli
 """
     )
 
+    st.markdown(
+        """
+### 👤 Author
+Project created by **[Matheus Bissoli](https://www.linkedin.com/in/matheusbissoli/)**
+"""
+    )
+
     st.markdown("### Input data")
     if st.session_state.get("map_html") is None:
         st.info("Configure the input and click Process.")
