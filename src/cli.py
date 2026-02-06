@@ -220,7 +220,7 @@ def main(argv: Optional[list[str]] = None) -> int:
             return 2
 
         layers = [DatasetLayer(r.config, r.df) for r in dataset_results]
-        make_combined_map(layers, outdir / "mapa_aeroportos.html")
+        make_combined_map(layers, outdir / "airports_map.html")
         return 0
 
     except Exception as exc:

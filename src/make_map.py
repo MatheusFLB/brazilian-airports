@@ -100,9 +100,14 @@ SIDEBAR_CSS = """
 """
 
 LABEL_RENAMES = {
-    normalize_name("Nome"): "Aeroporto",
-    normalize_name("UF"): "Estado",
-    normalize_name("Superfície 1"): "Superfície",
+    normalize_name("Nome"): "Airport",
+    normalize_name("Município"): "City",
+    normalize_name("UF"): "State",
+    normalize_name("Operação Diurna"): "Day Ops",
+    normalize_name("Operação Noturna"): "Night Ops",
+    normalize_name("Superfície 1"): "Surface",
+    normalize_name("Situação"): "Status",
+    normalize_name("Link Portaria"): "Ordinance Link",
 }
 
 
@@ -241,10 +246,10 @@ def make_combined_map(
 
     bounds: Optional[Tuple[float, float, float, float]] = None
 
-    privados_group = folium.FeatureGroup(name="Privados")
-    privados_ifr_group = folium.FeatureGroup(name="Privados com IFR")
-    publicos_group = folium.FeatureGroup(name="Publicos")
-    publicos_ifr_group = folium.FeatureGroup(name="Publicos com IFR")
+    privados_group = folium.FeatureGroup(name="Private")
+    privados_ifr_group = folium.FeatureGroup(name="Private with IFR")
+    publicos_group = folium.FeatureGroup(name="Public")
+    publicos_ifr_group = folium.FeatureGroup(name="Public with IFR")
 
     group_map = {
         "privados": (privados_group, privados_ifr_group),
@@ -335,23 +340,23 @@ def make_combined_map(
 
     sidebar_html = f"""
 <div id="filter-sidebar">
-  <h4>Legenda e filtros</h4>
-  <div class="hint">Para visualizar os aeroportos, marque as camadas abaixo.</div>
+  <h4>Legend and filters</h4>
+  <div class="hint">To view airports, enable the layers below.</div>
   <label><input type="checkbox" id="flt-privados">
     <span class="swatch" style="background:{priv_default}"></span>
-    Privados
+    Private
   </label>
   <label><input type="checkbox" id="flt-privados-ifr">
     <span class="swatch" style="background:{priv_alt}"></span>
-    Privados com IFR
+    Private with IFR
   </label>
   <label><input type="checkbox" id="flt-publicos">
     <span class="swatch" style="background:{pub_default}"></span>
-    Publicos
+    Public
   </label>
   <label><input type="checkbox" id="flt-publicos-ifr">
     <span class="swatch" style="background:{pub_alt}"></span>
-    Publicos com IFR
+    Public with IFR
   </label>
 </div>
 """
@@ -378,7 +383,7 @@ def make_combined_map(
         var val = values[i] || "";
         if (!val) continue;
         if (i === linkIdx) {{
-          html += "<tr><th>" + labels[i] + "</th><td><a href=\\"" + val + "\\" target=\\"_blank\\" rel=\\"noopener\\">Abrir link</a></td></tr>";
+          html += "<tr><th>" + labels[i] + "</th><td><a href=\\"" + val + "\\" target=\\"_blank\\" rel=\\"noopener\\">Open link</a></td></tr>";
         }} else {{
           html += "<tr><th>" + labels[i] + "</th><td>" + val + "</td></tr>";
         }}

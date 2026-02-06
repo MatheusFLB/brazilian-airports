@@ -96,12 +96,12 @@ def _build_outputs_zip(results: List[DatasetResult]) -> bytes:
                 convert_to_shapefile(result.df, dataset_shp_dir / f"{result.stem}.shp")
 
         layers = [DatasetLayer(r.config, r.df) for r in results if r.valid > 0]
-        map_path = html_dir / "mapa_aeroportos.html"
+        map_path = html_dir / "airports_map.html"
         if layers:
             make_combined_map(layers, map_path)
         else:
             map_path.write_text(
-                "<!doctype html><html><body>Sem registros válidos para o mapa.</body></html>",
+                "<!doctype html><html><body>No valid records for the map.</body></html>",
                 encoding="utf-8",
             )
 
@@ -115,7 +115,7 @@ def _build_outputs_zip(results: List[DatasetResult]) -> bytes:
 
 def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
     layers = [DatasetLayer(r.config, r.df) for r in results if r.valid > 0]
-    map_path = outdir / "mapa_aeroportos.html"
+    map_path = outdir / "airports_map.html"
     make_combined_map(layers, map_path)
     return map_path
 
@@ -179,77 +179,77 @@ def main() -> None:
 </style>
 <div class="page-title">✈️ Brazilian Airports</div>
 <div class="page-subtitle">
-  Projeto para analise de dados geoespaciais.<br>
-  Demonstra o fluxo completo: CSV bruto → limpeza → shapefile → mapa interativo.
+  Portfolio project for geospatial data analysis.<br>
+  Demonstrates the full pipeline: raw CSV → cleaning → shapefile → interactive map.
 </div>
 """,
         unsafe_allow_html=True,
     )
     st.markdown(
-        "Fontes oficiais dos dados (CSV bruto): "
-        f"[Aerodromos Publicos]({PUBLICOS_URL}) | "
-        f"[Aerodromos Privados]({PRIVADOS_URL})"
+        "Official data sources (raw CSV): "
+        f"[Public Aerodromes]({PUBLICOS_URL}) | "
+        f"[Private Aerodromes]({PRIVADOS_URL})"
     )
 
     st.markdown(
         """
-### 🧭 Fluxo da solução
-- 📥 Coleta dados brutos em CSV do site governamental da ANAC (Agência Nacional de Aviação Civil)
-- 🧹 Limpa e valida coordenadas geográficas
-- 🗺️ Gera shapefiles para cada dataset
-- ✈️ Cria mapa interativo com filtros e popups clicaveis para cada aeroporto
-- 🔗 Links da documentação de portaria ficam clicáveis nos popups dos aeroportos
+### 🧭 Solution flow
+- 📥 Collects raw CSV data from ANAC (Brazilian National Civil Aviation Agency)
+- 🧹 Cleans and validates geographic coordinates
+- 🗺️ Generates shapefiles for each dataset
+- ✈️ Creates an interactive map with filters and clickable popups
+- 🔗 Official ordinance links are clickable in airport popups
 """
     )
 
     st.markdown(
         """
-### 🗺️ Mapa interativo e filtros
-- 🟫 Privados
-- 🟦 Privados com IFR
-- 🟨 Públicos
-- 🟪 Públicos com IFR
-- ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
-- 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
+### 🗺️ Interactive map and filters
+- 🟫 Private
+- 🟦 Private with IFR
+- 🟨 Public
+- 🟪 Public with IFR
+- ❌ If "Status" contains "Interditado" (Closed), the icon shows a red X
+- 🎛️ Filters: Private, Private with IFR, Public, Public with IFR
 
-### **O que é VFR e IFR?**
-VFR (Visual Flight Rules) = operação visual.  
-IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com baixa visibilidade.
+### **What are VFR and IFR?**
+VFR (Visual Flight Rules) = visual operations.  
+IFR (Instrument Flight Rules) = instrument operations, allows low-visibility flights.
 """
     )
 
-    st.markdown("### Entrada de dados")
+    st.markdown("### Input data")
     if st.session_state.get("map_html") is None:
-        st.info("Configure a entrada e clique em Processar.")
+        st.info("Configure the input and click Process.")
     source = st.radio(
-        "Fonte",
-        ["Usar CSVs do projeto", "Upload de CSVs"],
+        "Source",
+        ["Use project CSVs", "Upload CSVs"],
         horizontal=True,
     )
     uploads = []
-    if source == "Upload de CSVs":
+    if source == "Upload CSVs":
         uploads = st.file_uploader(
-            "Envie 1 ou 2 CSVs",
+            "Upload 1 or 2 CSVs",
             type=["csv"],
             accept_multiple_files=True,
             key="uploads",
         )
-    run = st.button("Processar")
+    run = st.button("Process")
 
     if run:
-        with st.spinner("Processando..."):
+        with st.spinner("Processing..."):
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmpdir_path = Path(tmpdir)
 
-                if source == "Usar CSVs do projeto":
+                if source == "Use project CSVs":
                     csv_dir = BASE_DIR / "csv-base"
                     paths = sorted(csv_dir.glob("*.csv"))
                     if not paths:
-                        st.error("Nenhum CSV encontrado em csv-base.")
+                        st.error("No CSV files found in csv-base.")
                         return
                 else:
                     if not uploads:
-                        st.error("Envie pelo menos um CSV.")
+                        st.error("Please upload at least one CSV.")
                         return
                     paths = []
                     for up in uploads:
@@ -269,8 +269,8 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
     if st.session_state.get("map_html") is None:
         return
 
-    st.subheader("Mapa")
-    st.info("Para visualizar os aeroportos, marque as camadas na legenda do mapa.")
+    st.subheader("Map")
+    st.info("To view airports, enable layers in the map legend.")
     try:
         st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
     except TypeError:
@@ -278,14 +278,14 @@ IFR (Instrument Flight Rules) = operação por instrumentos, permite voos com ba
         st.components.v1.html(st.session_state.map_html, height=800, scrolling=True)
 
     st.markdown("### Outputs")
-    if st.button("Gerar outputs para download"):
+    if st.button("Generate outputs for download"):
         if st.session_state.results:
             st.session_state.outputs_zip = _build_outputs_zip(st.session_state.results)
     if st.session_state.outputs_zip:
         st.download_button(
-            label="Baixar outputs (CSV + Shapefiles + HTML)",
+            label="Download outputs (CSV + Shapefiles + HTML)",
             data=st.session_state.outputs_zip,
-            file_name="aeroportos_outputs.zip",
+            file_name="airports_outputs.zip",
             mime="application/zip",
         )
 

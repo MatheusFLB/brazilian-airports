@@ -32,7 +32,7 @@ class DatasetConfig:
 DATASETS: List[DatasetConfig] = [
     DatasetConfig(
         key="privados",
-        label="Aerodromos Privados",
+        label="Private Aerodromes",
         filename_hints=[normalize_name("AerodromosPrivados"), normalize_name("Privados")],
         popup_fields=[
             "Nome",
@@ -49,7 +49,7 @@ DATASETS: List[DatasetConfig] = [
     ),
     DatasetConfig(
         key="publicos",
-        label="Aerodromos Publicos",
+        label="Public Aerodromes",
         filename_hints=[normalize_name("AerodromosPublicos"), normalize_name("Publicos")],
         popup_fields=[
             "Nome",
