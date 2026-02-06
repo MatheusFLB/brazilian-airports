@@ -8,7 +8,6 @@ import logging
 import re
 import pandas as pd
 import folium
-from folium.plugins import MarkerCluster
 from branca.element import Element
 
 from .datasets import DatasetConfig, normalize_name
@@ -19,15 +18,6 @@ BRAZIL_CENTER = (-14.235, -51.925)
 
 FA_CSS = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
 
-CLUSTER_OPTIONS = {
-    "chunkedLoading": True,
-    "chunkInterval": 200,
-    "chunkDelay": 50,
-    "removeOutsideVisibleBounds": True,
-    "disableClusteringAtZoom": 8,
-    "showCoverageOnHover": False,
-    "animate": False,
-}
 PLANE_CSS = """
 <style>
 .plane-icon {
@@ -68,6 +58,11 @@ SIDEBAR_CSS = """
 #filter-sidebar h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
+}
+#filter-sidebar .hint {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 8px;
 }
 #filter-sidebar label {
   display: flex;
@@ -256,16 +251,6 @@ def make_combined_map(
     publicos_group = folium.FeatureGroup(name="Publicos")
     publicos_ifr_group = folium.FeatureGroup(name="Publicos com IFR")
 
-    privados_cluster = MarkerCluster(name="Privados (cluster)", options=CLUSTER_OPTIONS)
-    privados_ifr_cluster = MarkerCluster(name="Privados IFR (cluster)", options=CLUSTER_OPTIONS)
-    publicos_cluster = MarkerCluster(name="Publicos (cluster)", options=CLUSTER_OPTIONS)
-    publicos_ifr_cluster = MarkerCluster(name="Publicos IFR (cluster)", options=CLUSTER_OPTIONS)
-
-    privados_cluster.add_to(privados_group)
-    privados_ifr_cluster.add_to(privados_ifr_group)
-    publicos_cluster.add_to(publicos_group)
-    publicos_ifr_cluster.add_to(publicos_ifr_group)
-
     group_map = {
         "privados": (privados_group, privados_ifr_group),
         "publicos": (publicos_group, publicos_ifr_group),
@@ -297,20 +282,11 @@ def make_combined_map(
                 target_group = ifr_group if is_ifr else base_group
             else:
                 target_group = publicos_group
-            if target_group is privados_group:
-                target_layer = privados_cluster
-            elif target_group is privados_ifr_group:
-                target_layer = privados_ifr_cluster
-            elif target_group is publicos_group:
-                target_layer = publicos_cluster
-            else:
-                target_layer = publicos_ifr_cluster
-
             folium.Marker(
                 location=[row[lat_col], row[lon_col]],
                 popup=folium.Popup(popup_html, max_width=350, lazy=True),
                 icon=icon,
-            ).add_to(target_layer)
+            ).add_to(target_group)
 
             lat = float(row[lat_col])
             lon = float(row[lon_col])
@@ -331,8 +307,7 @@ def make_combined_map(
     else:
         logger.warning("No valid points to plot. Map will be centered in Brazil without markers.")
 
-    for group in (privados_group, privados_ifr_group, publicos_group, publicos_ifr_group):
-        group.add_to(m)
+    # Start with all layers hidden; user enables via the legend filters.
 
     privados_cfg = next((d.config for d in datasets if d.config.key == "privados"), None)
     publicos_cfg = next((d.config for d in datasets if d.config.key == "publicos"), None)
@@ -344,20 +319,21 @@ def make_combined_map(
 
     sidebar_html = f"""
 <div id="filter-sidebar">
-  <h4>Filtros</h4>
-  <label><input type="checkbox" id="flt-privados" checked>
+  <h4>Legenda e filtros</h4>
+  <div class="hint">Para visualizar os aeroportos, marque as camadas abaixo.</div>
+  <label><input type="checkbox" id="flt-privados">
     <span class="swatch" style="background:{priv_default}"></span>
     Privados
   </label>
-  <label><input type="checkbox" id="flt-privados-ifr" checked>
+  <label><input type="checkbox" id="flt-privados-ifr">
     <span class="swatch" style="background:{priv_alt}"></span>
     Privados com IFR
   </label>
-  <label><input type="checkbox" id="flt-publicos" checked>
+  <label><input type="checkbox" id="flt-publicos">
     <span class="swatch" style="background:{pub_default}"></span>
     Publicos
   </label>
-  <label><input type="checkbox" id="flt-publicos-ifr" checked>
+  <label><input type="checkbox" id="flt-publicos-ifr">
     <span class="swatch" style="background:{pub_alt}"></span>
     Publicos com IFR
   </label>
@@ -377,13 +353,15 @@ def make_combined_map(
     function bind(id, layer) {{
       var cb = document.getElementById(id);
       if (!cb) return;
-      cb.addEventListener('change', function() {{
+      function sync() {{
         if (cb.checked) {{
           map.addLayer(layer);
         }} else {{
           map.removeLayer(layer);
         }}
-      }});
+      }}
+      cb.addEventListener('change', sync);
+      sync();
     }}
     bind('flt-privados', layers.privados);
     bind('flt-privados-ifr', layers.privados_ifr);

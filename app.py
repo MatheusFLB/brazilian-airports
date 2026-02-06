@@ -104,15 +104,95 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
 
 def main() -> None:
     st.set_page_config(page_title="Aeroportos Geo", page_icon=":flag-br:", layout="wide")
-    st.title("Aeroportos Geo")
-    st.write(
-        "Projeto demonstrando coleta de dados brutos em CSV, limpeza de coordenadas, "
-        "geracao de shapefiles e mapa interativo com filtros."
+    st.markdown(
+        """
+<style>
+.hero-card {
+  background: linear-gradient(120deg, #f7f9fc, #eef3ff);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+.hero-sub {
+  margin-top: 6px;
+  font-size: 15px;
+  color: #2f3640;
+}
+.badges {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.badge {
+  background: #ffffff;
+  border: 1px solid #d7e0ee;
+  color: #2d3748;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+</style>
+<div class="hero-card">
+  <div class="hero-title">✈️ Aeroportos Geo</div>
+  <div class="hero-sub">
+    Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo completo:
+    CSV bruto → limpeza → shapefile → mapa interativo.
+  </div>
+  <div class="badges">
+    <span class="badge">CSV → Shapefile</span>
+    <span class="badge">EPSG:4326</span>
+    <span class="badge">Folium + Streamlit</span>
+    <span class="badge">Filtros e popups</span>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
     )
     st.markdown(
         "Fontes oficiais dos dados (CSV bruto): "
         f"[Aerodromos Publicos]({PUBLICOS_URL}) | "
         f"[Aerodromos Privados]({PRIVADOS_URL})"
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(
+            """
+### 🧭 Fluxo da solução
+- 📥 Coleta dados brutos em CSV (ANAC)
+- 🧹 Limpa e valida coordenadas geográficas
+- 🗺️ Gera shapefiles por dataset (EPSG:4326)
+- ✈️ Cria mapa interativo com filtros e popups
+- 🔗 Links de portaria ficam clicáveis
+"""
+        )
+    with col2:
+        st.markdown(
+            """
+### 🧠 Regras de qualidade de coordenadas
+- Remove espaços/tabs e aceita vírgula decimal
+- Corrige números sem ponto decimal (ex: -22175 → -22.175)
+- Tenta inverter LAT/LON quando fora das faixas do Brasil
+- Faixas Brasil: Latitude [-35, 6]
+- Faixas Brasil: Longitude [-75, -30]
+"""
+        )
+
+    st.markdown(
+        """
+### 🗺️ Mapa interativo e filtros
+- 🟫 Privados (terracota) e 🟦 ciano quando "Operação Noturna" contém "VFR / IFR"
+- 🟨 Públicos (amarelo) e 🟪 violeta quando "Operação Noturna" contém "VFR / IFR"
+- ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
+- 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
+"""
     )
 
     st.markdown("### Entrada de dados")
@@ -173,6 +253,7 @@ def main() -> None:
         return
 
     st.subheader("Mapa")
+    st.info("Para visualizar os aeroportos, marque as camadas na legenda do mapa.")
     try:
         st.components.v1.html(st.session_state.map_html, height=800, scrolling=True, key="map")
     except TypeError:
