@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple
 import html
+import json
 import logging
 import re
 import pandas as pd
@@ -180,6 +181,10 @@ def _fix_text(value: object) -> str:
     return text.strip()
 
 
+def _safe_value(value: object) -> str:
+    return html.escape(_fix_text(value))
+
+
 def _has_vfr_ifr(value: object) -> bool:
     text = _fix_text(value).lower()
     text = re.sub(r"\s+", "", text)
@@ -188,31 +193,6 @@ def _has_vfr_ifr(value: object) -> bool:
 
 def _has_token(value: object, token: str) -> bool:
     return token.lower() in _fix_text(value).lower()
-
-
-def _build_popup(row: pd.Series, fields: List[Tuple[str, str]]) -> str:
-    lines = ["<table class='popup-table'>"]
-    for label, col in fields:
-        val = _fix_text(row.get(col, ""))
-        if val.strip() == "":
-            continue
-        display_label = LABEL_RENAMES.get(normalize_name(label), label)
-        if normalize_name(label) == normalize_name("Link Portaria"):
-            url = html.escape(val)
-            link_text = "Abrir link"
-            title = html.escape(val)
-            lines.append(
-                f"<tr><th>{html.escape(display_label)}</th>"
-                f"<td><a href=\"{url}\" target=\"_blank\" rel=\"noopener\" title=\"{title}\">"
-                f"{link_text}</a></td></tr>"
-            )
-            continue
-        lines.append(
-            f"<tr><th>{html.escape(display_label)}</th>"
-            f"<td>{html.escape(val)}</td></tr>"
-        )
-    lines.append("</table>")
-    return "".join(lines)
 
 
 def _plane_icon_html(color: str, show_x: bool) -> str:
@@ -271,6 +251,13 @@ def make_combined_map(
         "publicos": (publicos_group, publicos_ifr_group),
     }
 
+    payloads = {
+        "privados": {"l": [], "k": -1, "r": []},
+        "privados_ifr": {"l": [], "k": -1, "r": []},
+        "publicos": {"l": [], "k": -1, "r": []},
+        "publicos_ifr": {"l": [], "k": -1, "r": []},
+    }
+
     for dataset in datasets:
         df_ok = dataset.df[dataset.df["STATUS"] == "ok"].copy()
         df_ok = df_ok.dropna(subset=[lat_col, lon_col])
@@ -282,26 +269,38 @@ def make_combined_map(
         df_ok[lon_col] = df_ok[lon_col].astype(float)
 
         fields = _resolve_fields(df_ok, dataset.config.popup_fields)
+        labels = [html.escape(LABEL_RENAMES.get(normalize_name(label), label)) for label, _ in fields]
+        link_idx = next(
+            (
+                idx
+                for idx, (label, _) in enumerate(fields)
+                if normalize_name(label) == normalize_name("Link Portaria")
+            ),
+            -1,
+        )
         col_map = _normalize_map(df_ok)
+
+        if dataset.config.key in group_map:
+            base_key = dataset.config.key
+            ifr_key = f"{dataset.config.key}_ifr"
+        else:
+            base_key = "publicos"
+            ifr_key = "publicos_ifr"
+
+        if not payloads[base_key]["l"]:
+            payloads[base_key]["l"] = labels
+            payloads[base_key]["k"] = link_idx
+        if not payloads[ifr_key]["l"]:
+            payloads[ifr_key]["l"] = labels
+            payloads[ifr_key]["k"] = link_idx
 
         for _, row in df_ok.iterrows():
             color, show_x, is_ifr = _pick_color_and_x(row, dataset.config, col_map)
-            popup_html = _build_popup(row, fields)
-            icon = folium.DivIcon(
-                html=_plane_icon_html(color, show_x),
-                icon_size=(22, 22),
-                icon_anchor=(11, 11),
+            values = [_safe_value(row.get(col, "")) for _, col in fields]
+            target_key = ifr_key if is_ifr else base_key
+            payloads[target_key]["r"].append(
+                [float(row[lat_col]), float(row[lon_col]), color, 1 if show_x else 0, values]
             )
-            if dataset.config.key in group_map:
-                base_group, ifr_group = group_map[dataset.config.key]
-                target_group = ifr_group if is_ifr else base_group
-            else:
-                target_group = publicos_group
-            folium.Marker(
-                location=[row[lat_col], row[lon_col]],
-                popup=folium.Popup(popup_html, max_width=350, lazy=True),
-                icon=icon,
-            ).add_to(target_group)
 
             lat = float(row[lat_col])
             lon = float(row[lon_col])
@@ -367,6 +366,47 @@ def make_combined_map(
       publicos: {publicos_group.get_name()},
       publicos_ifr: {publicos_ifr_group.get_name()}
     }};
+    var layerData = {json.dumps(payloads, ensure_ascii=False, separators=(",", ":"))};
+    function planeHtml(color, showX) {{
+      var plane = "<i class='fa fa-plane plane' style='color:" + color + "'></i>";
+      var cross = showX ? "<i class='fa fa-times x' style='color:#D32F2F'></i>" : "";
+      return "<div class='plane-icon'>" + plane + cross + "</div>";
+    }}
+    function buildPopup(labels, values, linkIdx) {{
+      var html = "<table class='popup-table'>";
+      for (var i = 0; i < labels.length; i++) {{
+        var val = values[i] || "";
+        if (!val) continue;
+        if (i === linkIdx) {{
+          html += "<tr><th>" + labels[i] + "</th><td><a href=\\"" + val + "\\" target=\\"_blank\\" rel=\\"noopener\\">Abrir link</a></td></tr>";
+        }} else {{
+          html += "<tr><th>" + labels[i] + "</th><td>" + val + "</td></tr>";
+        }}
+      }}
+      html += "</table>";
+      return html;
+    }}
+    function addRows(layer, data) {{
+      if (!data || !data.r) return;
+      var labels = data.l || [];
+      var linkIdx = typeof data.k === "number" ? data.k : -1;
+      for (var i = 0; i < data.r.length; i++) {{
+        var row = data.r[i];
+        var icon = L.divIcon({{
+          className: "",
+          html: planeHtml(row[2], row[3] === 1),
+          iconSize: [22, 22],
+          iconAnchor: [11, 11]
+        }});
+        L.marker([row[0], row[1]], {{ icon: icon }})
+          .bindPopup(buildPopup(labels, row[4], linkIdx), {{ maxWidth: 350 }})
+          .addTo(layer);
+      }}
+    }}
+    addRows(layers.privados, layerData.privados);
+    addRows(layers.privados_ifr, layerData.privados_ifr);
+    addRows(layers.publicos, layerData.publicos);
+    addRows(layers.publicos_ifr, layerData.publicos_ifr);
     function bind(id, layer) {{
       var cb = document.getElementById(id);
       if (!cb) return;
