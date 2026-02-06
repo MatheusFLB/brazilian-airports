@@ -7,11 +7,11 @@ Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo
 completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
 
 ## 🧭 Fluxo da solução
-- 📥 Coleta dados brutos em CSV (ANAC)
+- 📥 Coleta dados brutos em CSV do site governamental da ANAC (Agência Nacional de Aviação Civil)
 - 🧹 Limpa e valida coordenadas geográficas
-- 🗺️ Gera shapefiles por dataset (EPSG:4326)
-- ✈️ Cria mapa interativo com filtros e popups
-- 🔗 Links de portaria ficam clicáveis
+- 🗺️ Gera shapefiles para cada dataset
+- ✈️ Cria mapa interativo com filtros e popups clicaveis para cada aeroporto
+- 🔗 Links da documentação de portaria ficam clicáveis nos popups dos aeroportos
 
 ## 🧠 Regras de qualidade de coordenadas
 - Remove espaços/tabs e aceita vírgula decimal
@@ -21,10 +21,10 @@ completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
 - Faixas Brasil: Longitude [-75, -30]
 
 ## 🗺️ Mapa interativo e filtros
-- 🟫 Privados (terracota) = operação visual (VFR)
-- 🟦 Privados com IFR = habilitado para operação por instrumentos
-- 🟨 Públicos (amarelo) = operação visual (VFR)
-- 🟪 Públicos com IFR = habilitado para operação por instrumentos
+- 🟫 Privados
+- 🟦 Privados com IFR
+- 🟨 Públicos
+- 🟪 Públicos com IFR
 - ❌ Se "Situação" contém "Interditado", o ícone recebe um X vermelho
 - 🎛️ Filtros: Privados, Privados com IFR, Públicos, Públicos com IFR
 
