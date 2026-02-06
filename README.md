@@ -1,10 +1,10 @@
-﻿# ✈️ Brazilian Airports
+# ✈️ Brazilian Airports
 
 ## 🌐 Aplicação publicada
 - https://brazilaero.streamlit.app
 
-Projeto de portfólio para analista de dados geoespaciais. Demonstra o fluxo
-completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
+Projeto para analise de dados geoespaciais.\
+Demonstra o fluxo completo: CSV bruto → limpeza → shapefile → mapa interativo.
 
 ## 🧭 Fluxo da solução
 - 📥 Coleta dados brutos em CSV do site governamental da ANAC (Agência Nacional de Aviação Civil)
@@ -12,13 +12,6 @@ completo de dados: CSV bruto → limpeza → shapefile → mapa interativo.
 - 🗺️ Gera shapefiles para cada dataset
 - ✈️ Cria mapa interativo com filtros e popups clicaveis para cada aeroporto
 - 🔗 Links da documentação de portaria ficam clicáveis nos popups dos aeroportos
-
-## 🧠 Regras de qualidade de coordenadas
-- Remove espaços/tabs e aceita vírgula decimal
-- Corrige números sem ponto decimal (ex: -22175 → -22.175)
-- Tenta inverter LAT/LON quando fora das faixas do Brasil
-- Faixas Brasil: Latitude [-35, 6]
-- Faixas Brasil: Longitude [-75, -30]
 
 ## 🗺️ Mapa interativo e filtros
 - 🟫 Privados

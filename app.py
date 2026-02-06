@@ -179,7 +179,7 @@ def main() -> None:
 </style>
 <div class="page-title">✈️ Brazilian Airports</div>
 <div class="page-subtitle">
-  Projeto de portfólio para analise de dados geoespaciais.<br>
+  Projeto para analise de dados geoespaciais.<br>
   Demonstra o fluxo completo: CSV bruto → limpeza → shapefile → mapa interativo.
 </div>
 """,
