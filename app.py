@@ -80,18 +80,36 @@ def _prepare_results(paths: List[Path]) -> List[DatasetResult]:
 def _build_outputs_zip(results: List[DatasetResult]) -> bytes:
     with tempfile.TemporaryDirectory() as tmpdir:
         outdir = Path(tmpdir) / "out"
-        outdir.mkdir(parents=True, exist_ok=True)
+        csv_dir = outdir / "csv"
+        shp_dir = outdir / "shapefiles"
+        html_dir = outdir / "html"
+        csv_dir.mkdir(parents=True, exist_ok=True)
+        shp_dir.mkdir(parents=True, exist_ok=True)
+        html_dir.mkdir(parents=True, exist_ok=True)
 
         for result in results:
-            clean_csv_path = outdir / f"{result.stem}_clean.csv"
+            clean_csv_path = csv_dir / f"{result.stem}_clean.csv"
             result.df.to_csv(clean_csv_path, index=False)
             if result.valid > 0:
-                convert_to_shapefile(result.df, outdir / f"{result.stem}.shp")
+                dataset_shp_dir = shp_dir / result.stem
+                dataset_shp_dir.mkdir(parents=True, exist_ok=True)
+                convert_to_shapefile(result.df, dataset_shp_dir / f"{result.stem}.shp")
+
+        layers = [DatasetLayer(r.config, r.df) for r in results if r.valid > 0]
+        map_path = html_dir / "mapa_aeroportos.html"
+        if layers:
+            make_combined_map(layers, map_path)
+        else:
+            map_path.write_text(
+                "<!doctype html><html><body>Sem registros válidos para o mapa.</body></html>",
+                encoding="utf-8",
+            )
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-            for file in sorted(outdir.iterdir()):
-                zf.write(file, arcname=file.name)
+            for file in sorted(outdir.rglob("*")):
+                if file.is_file():
+                    zf.write(file, arcname=str(file.relative_to(outdir)))
         return zip_buffer.getvalue()
 
 
