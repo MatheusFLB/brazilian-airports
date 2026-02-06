@@ -18,3 +18,4 @@ Thumbs.db
 # Outputs
 out/
 static/*.html
+!static/mapa.html

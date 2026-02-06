@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import html as html_lib
 from pathlib import Path
 import io
-import secrets
 import tempfile
 import time
 import zipfile
@@ -108,9 +107,7 @@ def _render_map(results: List[DatasetResult], outdir: Path) -> Path:
 
 def _publish_map(map_path: Path) -> str:
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
-    if "map_token" not in st.session_state:
-        st.session_state.map_token = secrets.token_hex(4)
-    filename = f"mapa_{st.session_state.map_token}.html"
+    filename = "mapa.html"
     target = STATIC_DIR / filename
     target.write_bytes(map_path.read_bytes())
     if not target.exists() or target.stat().st_size == 0:
